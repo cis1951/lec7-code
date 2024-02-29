@@ -11,12 +11,7 @@ import MapKit
 import SwiftUI
 
 class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published private(set) var state = GameState.loading {
-        didSet {
-            pauseProcessingUntilDate = Date(timeIntervalSinceNow: 1)
-        }
-    }
-    
+    @Published private(set) var state = GameState.loading
     @Published private(set) var score = 0
     fileprivate(set) var restaurants = [MKMapItem]()
     
@@ -25,21 +20,13 @@ class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     let feedbackGenerator = UINotificationFeedbackGenerator()
     
     var isRequestingLocation = false
-    var pauseProcessingUntilDate = Date.distantPast
     
     override init() {
         super.init()
         locationManager.delegate = self
     }
     
-    func requestLocation() {
-        if !isRequestingLocation {
-            isRequestingLocation = true
-            locationManager.requestLocation()
-        }
-    }
-    
-    func triggerLoad() {
+    func loadGame() {
         state = .loading
         switch locationManager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
@@ -60,13 +47,23 @@ class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.last {
-            isRequestingLocation = false
-            let request = MKLocalPointsOfInterestRequest(center: location.coordinate, radius: 2000)
-            request.pointOfInterestFilter = MKPointOfInterestFilter(including: [.restaurant, .foodMarket, .bakery, .cafe, .winery])
-            fetchPlaces(for: request)
+    func requestLocation() {
+        if !isRequestingLocation {
+            isRequestingLocation = true
+            locationManager.requestLocation()
         }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        
+        isRequestingLocation = false
+            
+        let request = MKLocalPointsOfInterestRequest(center: location.coordinate, radius: 2000)
+        request.pointOfInterestFilter = MKPointOfInterestFilter(including: [.restaurant, .foodMarket, .bakery, .cafe])
+            
+        let search = MKLocalSearch(request: request)
+        fetchPlaces(search: search)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -81,36 +78,7 @@ class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             motionManager.startDeviceMotionUpdates(to: .main) { [weak self] motion, error in
                 if let self {
                     if let motion {
-                        guard Date() >= pauseProcessingUntilDate else {
-                            return
-                        }
-                        
-                        let correctThreshold = Double.pi * 0.35
-                        let incorrectThreshold = Double.pi * 0.65
-                        let absoluteRoll = abs(motion.attitude.roll)
-                        
-                        switch state {
-                        case .ready, .correct, .pass:
-                            if (correctThreshold...incorrectThreshold).contains(absoluteRoll) {
-                                if let restaurant = restaurants.randomElement() {
-                                    state = .restaurant(restaurant)
-                                } else {
-                                    print("List of restaurants is empty!")
-                                    state = .error
-                                }
-                            }
-                        case .restaurant(_):
-                            if absoluteRoll < correctThreshold {
-                                state = .correct
-                                score += 1
-                                feedbackGenerator.notificationOccurred(.success)
-                            } else if absoluteRoll > incorrectThreshold {
-                                state = .pass
-                                feedbackGenerator.notificationOccurred(.error)
-                            }
-                        default:
-                            break
-                        }
+                        handleMotion(motion)
                     } else if let error {
                         print("Failed to receive motion update: \(error)")
                         state = .error
@@ -126,16 +94,40 @@ class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
-    deinit {
-        motionManager.stopDeviceMotionUpdates()
+    func handleMotion(_ motion: CMDeviceMotion) {
+        let correctThreshold = Double.pi * 0.35
+        let incorrectThreshold = Double.pi * 0.65
+        let absoluteRoll = abs(motion.attitude.roll)
+        
+        switch state {
+        case .ready, .correct, .pass:
+            if (correctThreshold...incorrectThreshold).contains(absoluteRoll) {
+                if let restaurant = restaurants.randomElement() {
+                    state = .restaurant(restaurant)
+                } else {
+                    print("List of restaurants is empty!")
+                    state = .error
+                }
+            }
+        case .restaurant(_):
+            if absoluteRoll < correctThreshold {
+                state = .correct
+                score += 1
+                feedbackGenerator.notificationOccurred(.success)
+            } else if absoluteRoll > incorrectThreshold {
+                state = .pass
+                feedbackGenerator.notificationOccurred(.error)
+            }
+        default:
+            break
+        }
     }
 }
 
 fileprivate extension GameViewModel {
-    func fetchPlaces(for request: MKLocalPointsOfInterestRequest) {
+    func fetchPlaces(search: MKLocalSearch) {
         Task {
             do {
-                let search = MKLocalSearch(request: request)
                 let response = try await search.start()
                 await MainActor.run {
                     restaurants = response.mapItems

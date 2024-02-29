@@ -26,7 +26,7 @@ struct GameView: View {
                         Text("Oh no! There was an error.")
                             .bigText()
                         Button("Retry") {
-                            viewModel.triggerLoad()
+                            viewModel.loadGame()
                         }
                         .buttonStyle(.bordered)
                         .tint(.primary)
@@ -58,7 +58,7 @@ struct GameView: View {
         .background(viewModel.state.background, ignoresSafeAreaEdges: .all)
         .preferredColorScheme(.dark)
         .onAppear {
-            viewModel.triggerLoad()
+            viewModel.loadGame()
         }
     }
 }

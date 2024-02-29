@@ -153,12 +153,15 @@ Now, implement `locationManager(_:didUpdateLocations:)`, which should:
 
 ```swift
 func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    guard let location = locations.last else { return }
-    isRequestingLocation = false
-
-    let request = MKLocalPointsOfInterestRequest(center: location.coordinate, radius: 2000)
-    request.pointOfInterestFilter = MKPointOfInterestFilter(including: [.restaurant, .bakery, .cafe])
-    fetchPlaces(request)
+    if let location = locations.last {
+        isRequestingLocation = false
+        
+        let request = MKLocalPointsOfInterestRequest(center: location.coordinate, radius: 2000)
+        request.pointOfInterestFilter = MKPointOfInterestFilter(including: [.restaurant, .foodMarket, .bakery, .cafe])
+        
+        let search = MKLocalSearch(request: request)
+        fetchPlaces(search: search)
+    }
 }
 ```
 
@@ -278,5 +281,6 @@ If you have time, try adding some of these features to your game:
     * *Hint*: Use the [UIFeedbackGenerator](https://developer.apple.com/documentation/uikit/uifeedbackgenerator) class.
 * **AirPods integration:** Use your AirPods' motion data to control the game, instead of the phone's. (This requires AirPods that support Spatial Audio.)
     * *Hint*: You should only need to edit one line and remove one line for this.
+    * You will also need to add a `NSMotionUsageDescription` purpose string.
 * **Debouncing:** The game might feel a bit sensitive, in that rapid head movement might cause a bunch of unwanted inputs. Try adding logic to ignore motion data for a short period after the player has made an input.
     * *Hint*: Keep track of when the player last made an input using a [Date](https://developer.apple.com/documentation/foundation/date) struct.
