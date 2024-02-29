@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// The game UI.
 struct GameView: View {
     @StateObject var viewModel = GameViewModel()
     
@@ -40,8 +41,8 @@ struct GameView: View {
                 case .correct:
                     Text("Correct")
                         .bigText()
-                case .pass:
-                    Text("Pass")
+                case .skip:
+                    Text("Skip")
                         .bigText()
                 }
             }

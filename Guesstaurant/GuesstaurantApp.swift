@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// The Guesstaurant app struct.
 @main
 struct GuesstaurantApp: App {
     var body: some Scene {

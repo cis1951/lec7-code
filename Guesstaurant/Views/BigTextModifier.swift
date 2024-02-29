@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// A modifier that applies a large, prominent text style.
 struct BigTextModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
@@ -16,6 +17,7 @@ struct BigTextModifier: ViewModifier {
 }
 
 extension View {
+    /// Applies a large, prominent text style.
     func bigText() -> some View {
         modifier(BigTextModifier())
     }

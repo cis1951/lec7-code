@@ -10,10 +10,16 @@ import CoreMotion
 import MapKit
 import SwiftUI
 
+/// The game's view model.
 class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
+    /// The current state of the game. See ``GameState`` for a list of possible values.
     @Published private(set) var state = GameState.loading
+    
+        /// The number of restaurants the player got correct.
     @Published private(set) var score = 0
-    fileprivate(set) var restaurants = [MKMapItem]()
+    
+    /// A list of restaurants to rotate between. Populated by the ``fetchPlaces(search:)`` method.
+    fileprivate var restaurants = [MKMapItem]()
     
     let locationManager = CLLocationManager()
     let motionManager = CMMotionManager()
@@ -26,6 +32,8 @@ class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.delegate = self
     }
     
+    /// Starts loading the game by requesting location access, or requesting the location itself if access has
+    /// already been granted.
     func loadGame() {
         state = .loading
         switch locationManager.authorizationStatus {
@@ -72,6 +80,9 @@ class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         state = .error
     }
     
+    /// Starts the game itself by setting the state to ready and starting motion updates.
+    ///
+    /// Called when `fetchPlaces` finishes loading restaurants.
     func startGame() {
         if motionManager.isDeviceMotionAvailable {
             motionManager.deviceMotionUpdateInterval = 1 / 50
@@ -94,13 +105,18 @@ class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
+    /// Updates the game's state based on new motion data.
+    /// 
+    /// Should be called whenever the game receives a motion update.
+    /// 
+    /// - Parameter motion: The latest device motion data.
     func handleMotion(_ motion: CMDeviceMotion) {
         let correctThreshold = Double.pi * 0.35
         let incorrectThreshold = Double.pi * 0.65
         let absoluteRoll = abs(motion.attitude.roll)
         
         switch state {
-        case .ready, .correct, .pass:
+        case .ready, .correct, .skip:
             if (correctThreshold...incorrectThreshold).contains(absoluteRoll) {
                 if let restaurant = restaurants.randomElement() {
                     state = .restaurant(restaurant)
@@ -115,7 +131,7 @@ class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                 score += 1
                 feedbackGenerator.notificationOccurred(.success)
             } else if absoluteRoll > incorrectThreshold {
-                state = .pass
+                state = .skip
                 feedbackGenerator.notificationOccurred(.error)
             }
         default:
@@ -125,6 +141,11 @@ class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
 }
 
 fileprivate extension GameViewModel {
+    /// Starts looking for places that match the given search, adding them to the `restaurants` array.
+    ///
+    /// This method returns immediately, but calls ``startGame()`` when the search completes.
+    ///
+    /// - Parameter search: An MKLocalSearch object describing the places to search for.
     func fetchPlaces(search: MKLocalSearch) {
         Task {
             do {
