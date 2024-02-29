@@ -42,23 +42,22 @@ Now, we're ready to ask the user to grant access to their location. We've create
 
 You may want to reference the [CLLocationManager docs](https://developer.apple.com/documentation/corelocation/cllocationmanager).
 
-<details markdown="yes">
-    <summary>Solution (don't look at this unless you're stuck!)</summary>
+<details>
+<summary>Solution (don't look at this unless you're stuck!)</summary>
 
-    ```swift
-    func loadGame() {
-        state = .loading
-        switch locationManager.authorizationStatus {
-        case .authorizedAlways, .authorizedWhenInUse:
-            locationManager.requestLocation()
-        default:
-            locationManager.requestWhenInUseAuthorization()
-        }
+```swift
+func loadGame() {
+    state = .loading
+    switch locationManager.authorizationStatus {
+    case .authorizedAlways, .authorizedWhenInUse:
+        locationManager.requestLocation()
+    default:
+        locationManager.requestWhenInUseAuthorization()
     }
-    ```
+}
+```
 
-    Note that your solution doesn't have to match exactly.
-
+Note that your solution doesn't have to match exactly.
 </details>
 
 You can now run the app -- it should prompt you for location access when it starts!
@@ -73,46 +72,46 @@ If we had to request location access in step 2, we won't immediately know whethe
 2. If the user *denied* access, set the game's state to `.error`, which will show an error message in `GameView`. (Optionally, you can log a message to the console for debugging purposes.)
 3. If neither are true, do nothing.
 
-There is, however, a small problem: the system will always call `locationManagerDidChangeAuthorization` the moment we create the `CLLocationManager`. This means that if the user has already granted location access, we might end up requesting the user's location *twice* simultaneously -- once in `loadGame()`, and once in `locationManagerDidChangeAuthorization`. This is a waste of resources, as we only need to have one request active at a time. To avoid this:
+There is, however, a small problem: the system will always call `locationManagerDidChangeAuthorization` the moment we create the `CLLocationManager`. This means that if the user has already granted location access, we might end up requesting the user's location *twice* simultaneously - once in `loadGame()`, and once in `locationManagerDidChangeAuthorization`. This is a waste of resources, as we only need to have one request active at a time. To avoid this:
 * Move both `locationManager.requestLocation()` calls to a new method, and call that method in `loadGame()` and `locationManagerDidChangeAuthorization` instead.
 * Add a new property to `GameViewModel` to track whether we're currently requesting the user's location.
 * In your new method, only request the user's location if we're not already doing so.
 
 Once this is done, the app will now request the user's location as soon as access is granted!
 
-<details markdown="yes">
-    <summary>Solution (don't look at this unless you're stuck!)</summary>
+<details>
+<summary>Solution (don't look at this unless you're stuck!)</summary>
 
-    ```swift
-    func loadGame() {
-        state = .loading
-        switch locationManager.authorizationStatus {
-        case .authorizedAlways, .authorizedWhenInUse:
-            requestLocation()
-        default:
-            locationManager.requestWhenInUseAuthorization()
-        }
+```swift
+func loadGame() {
+    state = .loading
+    switch locationManager.authorizationStatus {
+    case .authorizedAlways, .authorizedWhenInUse:
+        requestLocation()
+    default:
+        locationManager.requestWhenInUseAuthorization()
     }
+}
 
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        switch manager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            requestLocation()
-        case .denied, .restricted:
-            state = .error
-        default:
-            break
-        }
+func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+    switch manager.authorizationStatus {
+    case .authorizedWhenInUse, .authorizedAlways:
+        requestLocation()
+    case .denied, .restricted:
+        state = .error
+    default:
+        break
     }
+}
 
-    func requestLocation() {
-        if !isRequestingLocation {
-            isRequestingLocation = true
-            locationManager.requestLocation()
-        }
+func requestLocation() {
+    if !isRequestingLocation {
+        isRequestingLocation = true
+        locationManager.requestLocation()
     }
-    ```
+}
+```
 
-    Note that your solution doesn't have to match exactly.
+Note that your solution doesn't have to match exactly.
 
 </details>
