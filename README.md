@@ -79,7 +79,7 @@ If we had to request location access in step 2, we won't immediately know whethe
 2. If the user *denied* access, set the game's state to `.error`, which will show an error message in `GameView`. (Optionally, you can log a message to the console for debugging purposes.)
 3. If neither are true, do nothing.
 
-> {!TIP}
+> [!TIP]
 > If you start typing `func locationManagerDidChangeAuthorization` in the body of `GameViewModel`, Xcode will offer to autocomplete the method - complete with arguments - for you!
 
 There is, however, a small problem: the system will always call `locationManagerDidChangeAuthorization` the moment we create the `CLLocationManager`. This means that if the user has already granted location access, we might end up requesting the user's location *twice* simultaneously - once in `loadGame()`, and once in `locationManagerDidChangeAuthorization`. This is a waste of resources, as we only need to have one request active at a time. To avoid this:
