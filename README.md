@@ -83,6 +83,8 @@ Once this is done, the app will now request the user's location as soon as acces
 <summary>Solution (don't look at this unless you're stuck!)</summary>
 
 ```swift
+var isRequestingLocation = false
+
 func loadGame() {
     state = .loading
     switch locationManager.authorizationStatus {
