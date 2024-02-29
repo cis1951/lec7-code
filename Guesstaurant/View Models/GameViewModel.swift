@@ -81,9 +81,9 @@ class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             motionManager.startDeviceMotionUpdates(to: .main) { [weak self] motion, error in
                 if let self {
                     if let motion {
-                        guard Date() >= pauseProcessingUntilDate else {
+                        /* guard Date() >= pauseProcessingUntilDate else {
                             return
-                        }
+                        } */
                         
                         let correctThreshold = Double.pi * 0.35
                         let incorrectThreshold = Double.pi * 0.65
