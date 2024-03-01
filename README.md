@@ -196,7 +196,7 @@ Now, we can rewrite `startGame()` to start listening for motion data. We'll also
 
 ```swift
 func startGame() {
-    if motionManager.isDeviceAvailable {
+    if motionManager.isDeviceMotionAvailable {
         state = .ready
 
         motionManager.deviceMotionUpdateInterval = 1 / 60
