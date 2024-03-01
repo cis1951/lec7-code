@@ -250,7 +250,7 @@ let absoluteRoll = abs(motion.attitude.roll)
 
 switch state {
 case .ready, .correct, .skip:
-    if (correctThreshold...incorrectThreshold).contains(absoluteRoll) {
+    if (correctThreshold...skipThreshold).contains(absoluteRoll) {
         if let restaurant = restaurants.randomElement() {
             state = .restaurant(restaurant)
         } else {
