@@ -1,6 +1,11 @@
 # Guesstaurant
 This repo contains the starter code for **Lecture 7: Sensors**.
 
+> [!IMPORTANT]
+> If this project fails to run, **change the bundle identifier** in the project settings to something unique. An easy way to do this is to add some random digits to the end of the current bundle identifier.
+> 
+> To edit the bundle identifier, go to your project settings (the topmost "Guesstaurant" item on the sidebar), choose the "Guesstaurant" target, and click the "General" tab. You should see a "Bundle Identifier" field there.
+
 Today, we're going to build a game using location and motion data! In this game, you'll place your phone on your forehead and try to guess the name of the restaurant that's displayed on the screen, using only hints that your friends give you. You'll learn to use location data to find restaurants near you, then motion data to control the game.
 
 Here's a walkthrough of the steps you'll take to build out the starter code into a full game:
@@ -196,7 +201,7 @@ Now, we can rewrite `startGame()` to start listening for motion data. We'll also
 
 ```swift
 func startGame() {
-    if motionManager.isDeviceAvailable {
+    if motionManager.isDeviceMotionAvailable {
         state = .ready
 
         motionManager.deviceMotionUpdateInterval = 1 / 60
@@ -250,7 +255,7 @@ let absoluteRoll = abs(motion.attitude.roll)
 
 switch state {
 case .ready, .correct, .skip:
-    if (correctThreshold...incorrectThreshold).contains(absoluteRoll) {
+    if (correctThreshold...skipThreshold).contains(absoluteRoll) {
         if let restaurant = restaurants.randomElement() {
             state = .restaurant(restaurant)
         } else {
