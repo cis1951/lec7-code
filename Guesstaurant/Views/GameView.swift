@@ -9,7 +9,7 @@ import SwiftUI
 
 /// The game UI.
 struct GameView: View {
-    @StateObject var viewModel = GameViewModel()
+    @State var viewModel = GameViewModel()
     
     var body: some View {
         ZStack(alignment: .topTrailing) {

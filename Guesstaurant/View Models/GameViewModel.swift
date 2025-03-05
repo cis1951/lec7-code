@@ -11,12 +11,12 @@ import MapKit
 import SwiftUI
 
 /// The game's view model.
-class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
+@Observable class GameViewModel: NSObject, CLLocationManagerDelegate {
     /// The current state of the game. See ``GameState`` for a list of possible values.
-    @Published private(set) var state = GameState.loading
+    private(set) var state = GameState.loading
     
     /// The number of restaurants the player got correct.
-    @Published private(set) var score = 0
+    private(set) var score = 0
     
     /// A list of restaurants to rotate between. Populated by the ``fetchPlaces(search:)`` method.
     fileprivate var restaurants = [MKMapItem]()
