@@ -21,7 +21,7 @@ let locationManager = CLLocationManager()
 Next, we'll need to register the `GameViewModel` as the delegate for the `CLLocationManager`, so we can actually receive the user's location once it's ready. To do this, we'll need to update our class declaration, like this:
 
 ```swift
-class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate
+@Observable class GameViewModel: NSObject, CLLocationManagerDelegate
 ```
 
 **What's that NSObject doing there?** `NSObject` was the base class for pretty much all objects back in the Objective-C era, similar to `Object` in Java. `CLLocationManagerDelegate` dates back from this era, and in order to conform to it, we'll need to make `GameViewModel` a subclass of `NSObject`.
