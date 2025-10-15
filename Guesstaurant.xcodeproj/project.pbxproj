@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		896926C22EA03A89005FF514 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 896926C12EA03A89005FF514 /* README.md */; };
 		89BB724A2B8C314B00E3AF88 /* GuesstaurantApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89BB72492B8C314B00E3AF88 /* GuesstaurantApp.swift */; };
 		89BB724C2B8C314B00E3AF88 /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89BB724B2B8C314B00E3AF88 /* GameView.swift */; };
 		89BB724E2B8C314D00E3AF88 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 89BB724D2B8C314D00E3AF88 /* Assets.xcassets */; };
@@ -17,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		896926C12EA03A89005FF514 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		89BB72462B8C314B00E3AF88 /* Guesstaurant.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Guesstaurant.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		89BB72492B8C314B00E3AF88 /* GuesstaurantApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuesstaurantApp.swift; sourceTree = "<group>"; };
 		89BB724B2B8C314B00E3AF88 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
@@ -59,6 +61,7 @@
 		89BB72482B8C314B00E3AF88 /* Guesstaurant */ = {
 			isa = PBXGroup;
 			children = (
+				896926C12EA03A89005FF514 /* README.md */,
 				89BB72492B8C314B00E3AF88 /* GuesstaurantApp.swift */,
 				89BB72572B8C317B00E3AF88 /* Views */,
 				89BB72582B8C318F00E3AF88 /* View Models */,
@@ -162,6 +165,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				896926C22EA03A89005FF514 /* README.md in Resources */,
 				89BB72512B8C314D00E3AF88 /* Preview Assets.xcassets in Resources */,
 				89BB724E2B8C314D00E3AF88 /* Assets.xcassets in Resources */,
 			);
@@ -313,7 +317,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Guesstaurant/Preview Content\"";
-				DEVELOPMENT_TEAM = 9G475R3MEF;
+				DEVELOPMENT_TEAM = VU59R57FGM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Guesstaurant/Info.plist;
@@ -349,7 +353,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Guesstaurant/Preview Content\"";
-				DEVELOPMENT_TEAM = 9G475R3MEF;
+				DEVELOPMENT_TEAM = VU59R57FGM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Guesstaurant/Info.plist;

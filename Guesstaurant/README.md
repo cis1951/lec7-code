@@ -1,14 +1,10 @@
-# Guesstaurant
-This repo contains the starter code for **Lecture 7: Sensors**.
-
-> [!IMPORTANT]
-> If this project fails to run, **change the bundle identifier** in the project settings to something unique. An easy way to do this is to add some random digits to the end of the current bundle identifier.
-> 
-> To edit the bundle identifier, go to your project settings (the topmost "Guesstaurant" item on the sidebar), choose the "Guesstaurant" target, and click the "General" tab. You should see a "Bundle Identifier" field there.
+> **Stuck?** Solutions are available on the [GitHub](https://github.com/cis1951/lec7-code), but ask for help from a TA or instructor first! Only look at these if you're stuck.
 
 Today, we're going to build a game using location and motion data! In this game, you'll place your phone on your forehead and try to guess the name of the restaurant that's displayed on the screen, using only hints that your friends give you. You'll learn to use location data to find restaurants near you, then motion data to control the game.
 
-Here's a walkthrough of the steps you'll take to build out the starter code into a full game:
+> If this project fails to run, **change the bundle identifier** in the project settings to something unique. An easy way to do this is to add some random digits to the end of the current bundle identifier.
+> 
+> To edit the bundle identifier, go to your project settings (the topmost "Guesstaurant" item on the sidebar), choose the "Guesstaurant" target, and click the "General" tab. You should see a "Bundle Identifier" field there.
 
 ## Step 1: Set up a `CLLocationManager`
 
@@ -43,19 +39,6 @@ Now, we're ready to ask the user to grant access to their location. We've create
 1. Set the game's state to `.loading`, which will cause `GameView` to display a loading spinner.
 2. Request permission to access the user's location with `locationManager.requestWhenInUseAuthorization()`. This method won't do anything if the user has already made their choice, so it's safe to call regardless of the current authorization status.
 
-<details>
-<summary>Solution (don't look at this unless you're stuck!)</summary>
-
-```swift
-func loadGame() {
-    state = .loading
-    locationManager.requestWhenInUseAuthorization()
-}
-```
-
-Note that your solution doesn't have to match exactly.
-</details>
-
 There's one more thing we have to do: adding a purpose string. To do that on a more recent version of Xcode:
 1. Navigate to your project settings (the topmost "Guesstaurant" item on the sidebar).
 2. Choose the "Guesstaurant" target
@@ -89,23 +72,6 @@ You may want to reference the [CLLocationManager docs](https://developer.apple.c
 
 Note that the system will always call `locationManagerDidChangeAuthorization` the moment we create the `CLLocationManager`, so we don't need to request the user's location elsewhere in the code. Once this is done, the app will now request the user's location as soon as access is granted!
 
-<details>
-<summary>Solution (don't look at this unless you're stuck!)</summary>
-
-```swift
-func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-    switch manager.authorizationStatus {
-    case .authorizedWhenInUse, .authorizedAlways:
-        locationManager.requestLocation()
-    case .denied, .restricted:
-        state = .error
-    default:
-        break
-    }
-}
-```
-</details>
-
 ## Step 4: Search for restaurants with the user's location
 
 We've asked permission and requested the user's location - now it's time to use it!
@@ -128,27 +94,6 @@ Now, implement `locationManager(_:didUpdateLocations:)`, which should:
 3. Construct a `MKLocalSearch` object using the location's `coordinate`, and configure it so that it searches for restaurants.
     * [MKLocalSearch](https://developer.apple.com/documentation/mapkit/mklocalsearch) comes from MapKit, the Apple Maps API. To make one, you'll need either a [MKLocalSearch.Request](https://developer.apple.com/documentation/mapkit/mklocalsearch/request) or a [MKLocalPointsOfInterestRequest](https://developer.apple.com/documentation/mapkit/mklocalpointsofinterestrequest).
 4. Call the `fetchPlaces` method with the `MKLocalSearch` object. (We've already implemented `fetchPlaces` for you.)
-
-<details>
-<summary>Solution (don't look at this unless you're stuck!)</summary>
-
-```swift
-func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    if let location = locations.last {
-        isRequestingLocation = false
-        
-        let request = MKLocalPointsOfInterestRequest(center: location.coordinate, radius: 2000)
-        request.pointOfInterestFilter = MKPointOfInterestFilter(including: [.restaurant, .foodMarket, .bakery, .cafe])
-        
-        let search = MKLocalSearch(request: request)
-        fetchPlaces(search: search)
-    }
-}
-```
-
-> [!NOTE]
-> The **guard** statement checks that its condition is true before allowing execution to continue. If the condition is false, it will return early.
-</details>
 
 When it's done, `fetchPlaces` will populate the `restaurants` array and call `startGame()`. We'll flesh out `startGame()` later, but for now, have `startGame()` display a random restaurant:
 
@@ -209,48 +154,15 @@ Now for the fun part: implementing the game's logic! We've provided some stub co
 * If the game is in the **ready**, **correct**, or **skip** states, we should check the motion data to see if the user has returned their head to a neutral position. If they have, we should pick a random restaurant, then change the game's state to **restaurant**, much like we did at the end of step 4.
 * For any other states, you can just do nothing (i.e. `break` if you're in a `switch`).
 
-<details>
-<summary>Hint</summary>
-
-Because the device will be in the landscape position, we'll need to use the device's **roll**. Moreover, since we don't know which direction the device is facing, we'll need to take the absolute value of the **roll**, then compare it to some thresholds to determine whether the user is tilting their head up or down. Here's some code that might help:
-
-```swift
-let correctThreshold = Double.pi * 0.35
-let skipThreshold = Double.pi * 0.65
-let absoluteRoll = abs(motion.attitude.roll)
-```
-</details>
-
-<details>
-<summary>Solution (don't look at this unless you're stuck!)</summary>
-
-```swift
-let correctThreshold = Double.pi * 0.35
-let skipThreshold = Double.pi * 0.65
-let absoluteRoll = abs(motion.attitude.roll)
-
-switch state {
-case .ready, .correct, .skip:
-    if (correctThreshold...skipThreshold).contains(absoluteRoll) {
-        if let restaurant = restaurants.randomElement() {
-            state = .restaurant(restaurant)
-        } else {
-            print("List of restaurants is empty!")
-            state = .error
-        }
-    }
-case .restaurant(_):
-    if absoluteRoll < correctThreshold {
-        state = .correct
-        score += 1
-    } else if absoluteRoll > incorrectThreshold {
-        state = .skip
-    }
-default:
-    break
-}
-```
-</details>
+> **Hint:**
+> 
+> Because the device will be in the landscape position, we'll need to use the device's **roll**. Moreover, since we don't know which direction the device is facing, we'll need to take the absolute value of the **roll**, then compare it to some thresholds to determine whether the user is tilting their head up or down. Here's some code that might help:
+> 
+> ```swift
+> let correctThreshold = Double.pi * 0.35
+> let skipThreshold = Double.pi * 0.65
+> let absoluteRoll = abs(motion.attitude.roll)
+> ```
 
 And that's it! You've now built a game that uses location and motion data. Run your app on a physical device, and try playing it with your friends!
 
