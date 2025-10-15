@@ -11,73 +11,40 @@ import MapKit
 import SwiftUI
 
 /// The game's view model.
-class GameViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
+@Observable class GameViewModel {
     /// The current state of the game. See ``GameState`` for a list of possible values.
-    @Published private(set) var state = GameState.loading
+    private(set) var state = GameState.loading
     
     /// The number of restaurants the player got correct.
-    @Published private(set) var score = 0
+    private(set) var score = 0
     
     /// A list of restaurants to rotate between. Populated by the ``fetchPlaces(search:)`` method.
     fileprivate var restaurants = [MKMapItem]()
     
-    let locationManager = CLLocationManager()
     let motionManager = CMMotionManager()
     let feedbackGenerator = UINotificationFeedbackGenerator()
-    
-    var isRequestingLocation = false
-    
-    override init() {
-        super.init()
-        locationManager.delegate = self
-    }
     
     /// Starts loading the game by requesting location access, or requesting the location itself if access has
     /// already been granted.
     func loadGame() {
         state = .loading
-        switch locationManager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            requestLocation()
-        default:
-            locationManager.requestWhenInUseAuthorization()
-        }
-    }
-    
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        switch manager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            requestLocation()
-        case .denied, .restricted:
-            state = .error
-        default:
-            break
-        }
-    }
-    
-    func requestLocation() {
-        if !isRequestingLocation {
-            isRequestingLocation = true
-            locationManager.requestLocation()
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
         
-        isRequestingLocation = false
-            
-        let request = MKLocalPointsOfInterestRequest(center: location.coordinate, radius: 2000)
-        request.pointOfInterestFilter = MKPointOfInterestFilter(including: [.restaurant, .foodMarket, .bakery, .cafe])
-            
-        let search = MKLocalSearch(request: request)
-        fetchPlaces(search: search)
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        isRequestingLocation = false
-        print("Failed to get location: \(error)")
-        state = .error
+        Task {
+            let stream = CLLocationUpdate.liveUpdates()
+            for try await update in stream {
+                if let location = update.location {
+                    let request = MKLocalPointsOfInterestRequest(center: location.coordinate, radius: 2000)
+                    request.pointOfInterestFilter = MKPointOfInterestFilter(including: [.restaurant, .foodMarket, .bakery, .cafe])
+                    
+                    let search = MKLocalSearch(request: request)
+                    fetchPlaces(search: search)
+                    
+                    break
+                } else if #available(iOS 18.0, *), update.locationUnavailable || update.authorizationDenied || update.authorizationRestricted {
+                    state = .error
+                }
+            }
+        }
     }
     
     /// Starts the game itself by setting the state to ready and starting motion updates.
