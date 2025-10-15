@@ -120,10 +120,9 @@ func locationManager(_ manager: CLLocationManager, didFailWithError error: Error
 
 Now, implement `locationManager(_:didUpdateLocations:)`, which should:
 1. Get the last location in the array.
-2. Mark that we're no longer requesting the user's location.
-3. Construct a `MKLocalSearch` object using the location's `coordinate`, and configure it so that it searches for restaurants.
+2. Construct a `MKLocalSearch` object using the location's `coordinate`, and configure it so that it searches for restaurants.
     * [MKLocalSearch](https://developer.apple.com/documentation/mapkit/mklocalsearch) comes from MapKit, the Apple Maps API. To make one, you'll need either a [MKLocalSearch.Request](https://developer.apple.com/documentation/mapkit/mklocalsearch/request) or a [MKLocalPointsOfInterestRequest](https://developer.apple.com/documentation/mapkit/mklocalpointsofinterestrequest).
-4. Call the `fetchPlaces` method with the `MKLocalSearch` object. (We've already implemented `fetchPlaces` for you.)
+3. Call the `fetchPlaces` method with the `MKLocalSearch` object. (We've already implemented `fetchPlaces` for you.)
 
 <details>
 <summary>Solution (don't look at this unless you're stuck!)</summary>
