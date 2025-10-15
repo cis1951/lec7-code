@@ -9,6 +9,7 @@ import CoreLocation
 import CoreMotion
 import MapKit
 import SwiftUI
+import OSLog
 
 /// The game's view model.
 @Observable class GameViewModel: NSObject, CLLocationManagerDelegate {
@@ -19,14 +20,13 @@ import SwiftUI
     private(set) var score = 0
     
     /// A list of restaurants to rotate between. Populated by the ``fetchPlaces(search:)`` method.
-    fileprivate var restaurants = [MKMapItem]()
+    @ObservationIgnored fileprivate var restaurants = [MKMapItem]()
     
+    let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Guesstaurant", category: "GameViewModel")
     let locationManager = CLLocationManager()
     let motionManager = CMMotionManager()
     let feedbackGenerator = UINotificationFeedbackGenerator()
-    
-    var isRequestingLocation = false
-    
+        
     override init() {
         super.init()
         locationManager.delegate = self
@@ -36,37 +36,25 @@ import SwiftUI
     /// already been granted.
     func loadGame() {
         state = .loading
-        switch locationManager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            requestLocation()
-        default:
-            locationManager.requestWhenInUseAuthorization()
-        }
+        locationManager.requestWhenInUseAuthorization()
     }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            requestLocation()
+            logger.log("User granted location access!")
+            locationManager.requestLocation()
         case .denied, .restricted:
+            logger.fault("User denied location access!")
             state = .error
         default:
             break
         }
     }
     
-    func requestLocation() {
-        if !isRequestingLocation {
-            isRequestingLocation = true
-            locationManager.requestLocation()
-        }
-    }
-    
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-        
-        isRequestingLocation = false
-            
+                    
         let request = MKLocalPointsOfInterestRequest(center: location.coordinate, radius: 2000)
         request.pointOfInterestFilter = MKPointOfInterestFilter(including: [.restaurant, .foodMarket, .bakery, .cafe])
             
@@ -75,8 +63,7 @@ import SwiftUI
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        isRequestingLocation = false
-        print("Failed to get location: \(error)")
+        logger.fault("Failed to get location: \(error)")
         state = .error
     }
     
@@ -91,7 +78,7 @@ import SwiftUI
                     if let motion {
                         handleMotion(motion)
                     } else if let error {
-                        print("Failed to receive motion update: \(error)")
+                        logger.fault("Failed to receive motion update: \(error)")
                         state = .error
                         motionManager.stopDeviceMotionUpdates()
                     }
@@ -100,7 +87,7 @@ import SwiftUI
             
             state = .ready
         } else {
-            print("Device motion is not available!")
+            logger.fault("Device motion is not available!")
             state = .error
         }
     }
@@ -121,7 +108,7 @@ import SwiftUI
                 if let restaurant = restaurants.randomElement() {
                     state = .restaurant(restaurant)
                 } else {
-                    print("List of restaurants is empty!")
+                    logger.error("List of restaurants is empty!")
                     state = .error
                 }
             }
@@ -156,7 +143,7 @@ fileprivate extension GameViewModel {
                     startGame()
                 }
             } catch {
-                print("Failed to get list of places: \(error)")
+                logger.fault("Failed to get list of places: \(error)")
                 state = .error
             }
         }

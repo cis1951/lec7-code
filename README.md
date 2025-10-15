@@ -41,11 +41,7 @@ override init() {
 
 Now, we're ready to ask the user to grant access to their location. We've created a stub method called `loadGame()`, which will be called when the game launches (or the user taps the Retry button on the error screen) -- there, you should:
 1. Set the game's state to `.loading`, which will cause `GameView` to display a loading spinner.
-2. Check if the user has already granted location permissions.
-3. If they have (whether "always" or "when in use",) we're good to go! Request the user's location with `locationManager.requestLocation()`.
-4. If they haven't, request permission with `locationManager.requestWhenInUseAuthorization()`.
-
-You may want to reference the [CLLocationManager docs](https://developer.apple.com/documentation/corelocation/cllocationmanager).
+2. Request permission to access the user's location with `locationManager.requestWhenInUseAuthorization()`. This method won't do anything if the user has already made their choice, so it's safe to call regardless of the current authorization status.
 
 <details>
 <summary>Solution (don't look at this unless you're stuck!)</summary>
@@ -53,19 +49,21 @@ You may want to reference the [CLLocationManager docs](https://developer.apple.c
 ```swift
 func loadGame() {
     state = .loading
-    switch locationManager.authorizationStatus {
-    case .authorizedAlways, .authorizedWhenInUse:
-        locationManager.requestLocation()
-    default:
-        locationManager.requestWhenInUseAuthorization()
-    }
+    locationManager.requestWhenInUseAuthorization()
 }
 ```
 
 Note that your solution doesn't have to match exactly.
 </details>
 
-There's one more thing we have to do: adding a purpose string. To do that:
+There's one more thing we have to do: adding a purpose string. To do that on a more recent version of Xcode:
+1. Navigate to your project settings (the topmost "Guesstaurant" item on the sidebar).
+2. Choose the "Guesstaurant" target
+3. Click the "Signing & Capabilities" tab.
+4. Click the "+ Capability" button, and add the **Location (When In Use)** property.
+5. Enter a purpose string in the field that appears.
+
+If that doesn't work, you may need to instead do the following:
 1. Navigate to your project settings (the topmost "Guesstaurant" item on the sidebar).
 2. Choose the "Guesstaurant" target
 3. Click the "Info" tab.
@@ -80,51 +78,29 @@ You can now run the app -- it should prompt you for location access when it star
 ## Step 3: Respond to the user's choice
 
 If we had to request location access in step 2, we won't immediately know whether the user chose to grant or deny it. Instead, CoreLocation will call our `locationManagerDidChangeAuthorization` method, and we'll be able to check the user's choice there. Go ahead and implement it with this logic:
-1. If the user granted access, request their location.
+1. If the user granted access, request their location with `locationManager.requestLocation()`.
 2. If the user *denied* access, set the game's state to `.error`, which will show an error message in `GameView`. (Optionally, you can log a message to the console for debugging purposes.)
 3. If neither are true, do nothing.
+
+You may want to reference the [CLLocationManager docs](https://developer.apple.com/documentation/corelocation/cllocationmanager).
 
 > [!TIP]
 > If you start typing `func locationManagerDidChangeAuthorization` in the body of `GameViewModel`, Xcode will offer to autocomplete the method - complete with arguments - for you!
 
-There is, however, a small problem: the system will always call `locationManagerDidChangeAuthorization` the moment we create the `CLLocationManager`. This means that if the user has already granted location access, we might end up requesting the user's location *twice* simultaneously - once in `loadGame()`, and once in `locationManagerDidChangeAuthorization`. This is a waste of resources, as we only need to have one request active at a time. To avoid this:
-* Move both `locationManager.requestLocation()` calls to a new method, and call that method in `loadGame()` and `locationManagerDidChangeAuthorization` instead.
-* Add a new property to `GameViewModel` to track whether we're currently requesting the user's location.
-* In your new method, only request the user's location if we're not already doing so.
-
-Once this is done, the app will now request the user's location as soon as access is granted!
+Note that the system will always call `locationManagerDidChangeAuthorization` the moment we create the `CLLocationManager`, so we don't need to request the user's location elsewhere in the code. Once this is done, the app will now request the user's location as soon as access is granted!
 
 <details>
 <summary>Solution (don't look at this unless you're stuck!)</summary>
 
 ```swift
-var isRequestingLocation = false
-
-func loadGame() {
-    state = .loading
-    switch locationManager.authorizationStatus {
-    case .authorizedAlways, .authorizedWhenInUse:
-        requestLocation()
-    default:
-        locationManager.requestWhenInUseAuthorization()
-    }
-}
-
 func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
     switch manager.authorizationStatus {
     case .authorizedWhenInUse, .authorizedAlways:
-        requestLocation()
+        locationManager.requestLocation()
     case .denied, .restricted:
         state = .error
     default:
         break
-    }
-}
-
-func requestLocation() {
-    if !isRequestingLocation {
-        isRequestingLocation = true
-        locationManager.requestLocation()
     }
 }
 ```
