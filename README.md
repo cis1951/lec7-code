@@ -116,10 +116,6 @@ It can take some time for `CLLocationManager` to get the user's location - once 
 func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
     print("Failed to get location: \(error)")
     state = .error
-
-    // Don't forget to reset whether we're currently requesting the user's location!
-    isRequestingLocation = false
-}
 ```
 
 Now, implement `locationManager(_:didUpdateLocations:)`, which should:
@@ -134,9 +130,7 @@ Now, implement `locationManager(_:didUpdateLocations:)`, which should:
 
 ```swift
 func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    if let location = locations.last {
-        isRequestingLocation = false
-        
+    if let location = locations.last {        
         let request = MKLocalPointsOfInterestRequest(center: location.coordinate, radius: 2000)
         request.pointOfInterestFilter = MKPointOfInterestFilter(including: [.restaurant, .foodMarket, .bakery, .cafe])
         

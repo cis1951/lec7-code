@@ -82,9 +82,6 @@ It can take some time for `CLLocationManager` to get the user's location - once 
 func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
     print("Failed to get location: \(error)")
     state = .error
-
-    // Don't forget to reset whether we're currently requesting the user's location!
-    isRequestingLocation = false
 }
 ```
 
